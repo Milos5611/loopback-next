@@ -4,18 +4,16 @@
 // License text available at https://opensource.org/licenses/MIT
 
 import {
+  Application,
   Binding,
   BindingFilter,
   BindingFromClassOptions,
   BindingScope,
+  Component,
   Constructor,
   Context,
-  createBindingFromClass,
-} from '@loopback/core';
-import {
-  Application,
-  Component,
   CoreBindings,
+  createBindingFromClass,
   MixinTarget,
 } from '@loopback/core';
 import {BootComponent} from '../boot.component';
@@ -24,10 +22,6 @@ import {Bootstrapper} from '../bootstrapper';
 import {BootBindings, BootTags} from '../keys';
 import {Bootable, Booter, BootOptions, InstanceWithBooters} from '../types';
 
-// FIXME(rfeng): Workaround for https://github.com/microsoft/rushstack/pull/1867
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import * as loopbackContext from '@loopback/core';
-import * as loopbackCore from '@loopback/core';
 /* eslint-enable @typescript-eslint/no-unused-vars */
 
 // Binding is re-exported as Binding / Booter types are needed when consuming
@@ -71,6 +65,23 @@ export function BootMixin<T extends MixinTarget<Application>>(superClass: T) {
       );
     }
 
+    booted: boolean;
+
+    /**
+     * Override to detect and warn about starting without booting.
+     */
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    public async start(): Promise<void> {
+      await super.start();
+      if (!this.booted) {
+        process.emitWarning(
+          'App started without booting. Did you forget to call ' +
+            '`await app.boot()`?',
+        );
+      }
+    }
+
     /**
      * Convenience method to call bootstrapper.boot() by resolving bootstrapper
      */
@@ -101,6 +112,7 @@ export function BootMixin<T extends MixinTarget<Application>>(superClass: T) {
 
       // @ts-ignore
       this.setState('booted');
+      this.booted = true;
 
       /* eslint-enable @typescript-eslint/ban-ts-comment */
     }
