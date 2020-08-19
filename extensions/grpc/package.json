@@ -47,5 +47,8 @@
     "@types/debug": "^4.1.5",
     "@types/glob": "^7.1.2"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "copyright.owner": "IBM Corp."
 }
